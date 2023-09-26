@@ -327,6 +327,18 @@ test_expect_success 'verify after commit-graph-chain corruption' '
 	)
 '
 
+test_expect_success 'verify notices too-short chain file' '
+	git clone --no-hardlinks . verify-chain-garbage &&
+	(
+		cd verify-chain-garbage &&
+		git commit-graph verify &&
+		echo "garbage" >$graphdir/commit-graph-chain &&
+		test_must_fail git commit-graph verify 2>test_err &&
+		grep -v "^+" test_err >err &&
+		grep "commit-graph chain file too small" err
+	)
+'
+
 test_expect_success 'verify across alternates' '
 	git clone --no-hardlinks . verify-alt &&
 	(

@@ -316,11 +316,11 @@ test_expect_success 'verify after commit-graph-chain corruption' '
 	git clone --no-hardlinks . verify-chain &&
 	(
 		cd verify-chain &&
-		corrupt_file "$graphdir/commit-graph-chain" 60 "G" &&
+		corrupt_file "$graphdir/commit-graph-chain" 30 "G" &&
 		git commit-graph verify 2>test_err &&
 		grep -v "^+" test_err >err &&
 		test_i18ngrep "invalid commit-graph chain" err &&
-		corrupt_file "$graphdir/commit-graph-chain" 60 "A" &&
+		corrupt_file "$graphdir/commit-graph-chain" 30 "A" &&
 		git commit-graph verify 2>test_err &&
 		grep -v "^+" test_err >err &&
 		test_i18ngrep "unable to find all commit-graph files" err

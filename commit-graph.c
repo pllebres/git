@@ -563,13 +563,16 @@ int open_commit_graph_chain(const char *chain_file,
 }
 
 struct commit_graph *load_commit_graph_chain_fd_st(struct repository *r,
-						   int fd, struct stat *st)
+						   int fd, struct stat *st,
+						   int *incomplete_chain)
 {
 	struct commit_graph *graph_chain = NULL;
 	struct strbuf line = STRBUF_INIT;
 	struct object_id *oids;
 	int i = 0, valid = 1, count;
 	FILE *fp = xfdopen(fd, "r");
+
+	*incomplete_chain = 0;
 
 	count = st->st_size / (the_hash_algo->hexsz + 1);
 	CALLOC_ARRAY(oids, count);
@@ -608,6 +611,7 @@ struct commit_graph *load_commit_graph_chain_fd_st(struct repository *r,
 
 		if (!valid) {
 			warning(_("unable to find all commit-graph files"));
+			*incomplete_chain = 1;
 			break;
 		}
 	}
@@ -630,8 +634,9 @@ static struct commit_graph *load_commit_graph_chain(struct repository *r,
 	struct commit_graph *g = NULL;
 
 	if (open_commit_graph_chain(chain_file, &fd, &st)) {
+		int incomplete;
 		/* ownership of fd is taken over by load function */
-		g = load_commit_graph_chain_fd_st(r, fd, &st);
+		g = load_commit_graph_chain_fd_st(r, fd, &st, &incomplete);
 	}
 
 	free(chain_file);
